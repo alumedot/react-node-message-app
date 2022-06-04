@@ -43,11 +43,20 @@ const App = () => {
     localStorage.removeItem('userId');
   };
 
-  const loginHandler = (event, authData) => {
+  const loginHandler = (event, { email, password }) => {
     event.preventDefault();
     setAuthLoading(true);
 
-    fetch('URL')
+    fetch('http://localhost:8080/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      })
+    })
       .then(res => {
         if (res.status === 422) {
           throw new Error('Validation failed.');

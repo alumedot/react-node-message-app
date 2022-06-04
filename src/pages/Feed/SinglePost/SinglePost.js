@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import Image from '../../../components/Image/Image';
 import './SinglePost.css';
 
-const SinglePost = () => {
+const SinglePost = ({ token }) => {
   const [post, setPost] = useState({});
 
   const params = useParams();
@@ -12,7 +12,11 @@ const SinglePost = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`http://localhost:8080/feed/post/${params.postId}`);
+        const res = await fetch(`http://localhost:8080/feed/post/${params.postId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
         if (res.status !== 200) {
           throw new Error('Failed to fetch status');
@@ -31,7 +35,7 @@ const SinglePost = () => {
         console.log(e);
       }
     })()
-  },[params.postId])
+  },[params.postId, token])
 
 
   return (
