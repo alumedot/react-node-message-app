@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from 'react';
-import openSocket from 'socket.io-client';
 
 import Post from '../../components/Feed/Post/Post';
 import Button from '../../components/Button/Button';
@@ -40,59 +39,6 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
-
-    const socket = openSocket('http://localhost:8080');
-
-    socket.on('posts', (data) => {
-      if (data.action === 'create') {
-        this.addPost(data.post);
-      } else if (data.action === 'update') {
-        this.updatePost(data.post);
-      } else if (data.action === 'delete') {
-        this.removePost(data.postId);
-      }
-    })
-  }
-
-  removePost = (postId) => {
-    this.setState((prevState) => {
-      const updatedPosts = prevState.posts.filter((post) => post._id !== postId);
-
-      return {
-        posts: updatedPosts,
-        totalPosts: prevState.totalPosts - 1
-      }
-    })
-  }
-
-  addPost = (post) => {
-    this.setState((prevState) => {
-      const updatedPosts = [...prevState.posts];
-      if (prevState.postPage === 1) {
-        if (prevState.posts.length >= 2) {
-          updatedPosts.pop();
-        }
-        updatedPosts.unshift(post);
-      }
-
-      return {
-        posts: updatedPosts,
-        totalPosts: prevState.totalPosts + 1
-      };
-    });
-  }
-
-  updatePost = (post) => {
-    this.setState((prevState) => {
-      const updatedPosts = [...prevState.posts];
-      const updatedPostIndex = updatedPosts.findIndex(p => p._id === post._id);
-      if (updatedPostIndex > -1) {
-        updatedPosts[updatedPostIndex] = post;
-      }
-      return {
-        posts: updatedPosts
-      };
-    });
   }
 
   loadPosts = (direction) => {
@@ -239,12 +185,8 @@ class Feed extends Component {
         }
         return res.json();
       })
-      .then(resData => {
-        console.log(resData);
-        this.setState(prevState => {
-          const updatedPosts = prevState.posts.filter(p => p._id !== postId);
-          return { posts: updatedPosts, postsLoading: false };
-        });
+      .then(() => {
+        this.loadPosts();
       })
       .catch(err => {
         console.log(err);

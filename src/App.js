@@ -97,30 +97,35 @@ const App = () => {
   ) => {
     event.preventDefault();
     setAuthLoading(true);
-    fetch('http://localhost:8080/auth/signup', {
-      method: 'PUT',
+    const graphqlQuery = {
+      query: `
+        mutation {
+          createUser(userInput:{ email: "${email.value}", name: "${name.value}", password: "${password.value}"}) {
+            _id
+            email
+          }
+        }
+      `
+    };
+    fetch('http://localhost:8080/graphql', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value,
-        name: name.value
-      })
+      body: JSON.stringify(graphqlQuery)
     })
       .then(res => {
-        if (res.status === 422) {
+        return res.json();
+      })
+      .then((resData) => {
+        if (resData.errors && resData.errors[0].status === 422) {
           throw new Error(
             "Validation failed. Make sure the email address isn't used yet!"
           );
         }
-        if (res.status !== 200 && res.status !== 201) {
-          console.log('Error!');
-          throw new Error('Creating a user failed!');
+        if (resData.errors) {
+          throw new Error('User creation failed');
         }
-        return res.json();
-      })
-      .then(_resData => {
         setIsAuth(false);
         setAuthLoading(false);
         navigate('/');
