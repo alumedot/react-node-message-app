@@ -82,15 +82,13 @@ const App = () => {
         setAuthLoading(false);
         setUserId(resData.data.login.userId);
 
-        localStorage.setItem('token', resData.token);
-        localStorage.setItem('userId', resData.userId);
+        localStorage.setItem('token', resData.data.login.token);
+        localStorage.setItem('userId', resData.data.login.userId);
 
-        const remainingMilliseconds = 60 * 60 * 1000;
-        const expiryDate = new Date(
-          new Date().getTime() + remainingMilliseconds
-        );
+        const remainingMilliseconds = 60 * 60 * 1000 * 24 * 30;
+        const expiryDate = new Date(new Date().getTime() + remainingMilliseconds);
+
         localStorage.setItem('expiryDate', expiryDate.toISOString());
-        setAutoLogout(remainingMilliseconds);
       })
       .catch(err => {
         console.log(err);
@@ -147,7 +145,7 @@ const App = () => {
       });
   };
 
-  const setAutoLogout = useCallback(milliseconds => {
+  const setAutoLogout = useCallback((milliseconds) => {
     setTimeout(() => {
       logoutHandler();
     }, milliseconds);
@@ -160,10 +158,12 @@ const App = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const expiryDate = localStorage.getItem('expiryDate');
+
     if (!token || !expiryDate) {
       return;
     }
-    if (new Date(expiryDate) <= new Date()) {
+
+    if (new Date(expiryDate).getTime() <= new Date().getTime()) {
       logoutHandler();
       return;
     }

@@ -58,11 +58,12 @@ class Feed extends Component {
     const graphqlQuery = {
       query: `
         {
-          posts {
+          posts(page: ${page}) {
             posts {
               _id
               title
               content
+              imageUrl
               creator {
                 name
               }
@@ -152,14 +153,25 @@ class Feed extends Component {
       editLoading: true
     });
     const formData = new FormData();
-    formData.append('title', title);
-    formData.append('content', content);
     formData.append('image', image);
 
-    let graphqlQuery = {
-      query: `
+    if (this.state.editPost) {
+      formData.append('oldPath', this.state.editPost.imagePath);
+    }
+
+    fetch('http://localhost:8080/post-image', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${this.props.token}`
+      },
+      body: formData
+    })
+      .then((res) => res.json())
+      .then(({ filePath }) => {
+        let graphqlQuery = {
+          query: `
         mutation {
-          createPost(postInput: { title: "${title}", content: "${content}", imageUrl: "some url" }) {
+          createPost(postInput: { title: "${title}", content: "${content}", imageUrl: "${filePath}" }) {
             _id
             title
             content
@@ -171,16 +183,17 @@ class Feed extends Component {
           }
         }
       `
-    };
+        };
 
-    fetch('http://localhost:8080/graphql', {
-      method: 'POST',
-      body: JSON.stringify(graphqlQuery),
-      headers: {
-        Authorization: `Bearer ${this.props.token}`,
-        'Content-Type': 'application/json'
-      }
-    })
+        return fetch('http://localhost:8080/graphql', {
+          method: 'POST',
+          body: JSON.stringify(graphqlQuery),
+          headers: {
+            Authorization: `Bearer ${this.props.token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      })
       .then((res) => {
         return res.json();
       })
@@ -195,14 +208,15 @@ class Feed extends Component {
           throw new Error('User login failed');
         }
 
-        const { _id, title, content, creator, createdAt } = resData.data.createPost;
+        const { _id, title, content, creator, createdAt, imageUrl } = resData.data.createPost;
 
         const post = {
           _id,
           title,
           content,
           creator,
-          createdAt
+          createdAt,
+          imageUrl
         }
 
         this.setState(prevState => {
@@ -213,6 +227,7 @@ class Feed extends Component {
             );
             updatedPosts[postIndex] = post;
           } else {
+            updatedPosts.pop();
             updatedPosts.unshift(post);
           }
           return {
