@@ -85,7 +85,7 @@ const App = () => {
         localStorage.setItem('token', resData.data.login.token);
         localStorage.setItem('userId', resData.data.login.userId);
 
-        const remainingMilliseconds = 60 * 60 * 1000 * 24 * 30;
+        const remainingMilliseconds = 60 * 60 * 1000;
         const expiryDate = new Date(new Date().getTime() + remainingMilliseconds);
 
         localStorage.setItem('expiryDate', expiryDate.toISOString());
