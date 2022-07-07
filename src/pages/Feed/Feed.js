@@ -68,8 +68,8 @@ class Feed extends Component {
 
     const graphqlQuery = {
       query: `
-        {
-          posts(page: ${page}) {
+        query FetchPosts($page: Int!) {
+          posts(page: $page) {
             posts {
               _id
               title
@@ -83,7 +83,10 @@ class Feed extends Component {
             totalPosts
           }
         }
-      `
+      `,
+      variables: {
+        page
+      }
     }
 
     fetch(`http://localhost:8080/graphql`, {
@@ -121,12 +124,15 @@ class Feed extends Component {
 
     const graphqlQuery = {
       query: `
-        mutation {
-          updateStatus(status: "${this.state.status}") {
+        mutation UpdateUserStatus($status: String!) {
+          updateStatus(status: $status) {
             status
           }
         }
-      `
+      `,
+      variables: {
+        status: this.state.status
+      }
     }
 
     fetch('http://localhost:8080/graphql', {
@@ -190,8 +196,8 @@ class Feed extends Component {
       .then(({ filePath }) => {
         let graphqlQuery = {
           query: `
-            mutation {
-              createPost(postInput: { title: "${title}", content: "${content}", imageUrl: "${filePath}" }) {
+            mutation CreateNewPost($title: String!, $content: String!, $imageUrl: String!) {
+              createPost(postInput: { title: $title, content: $content, imageUrl: $imageUrl }) {
                 _id
                 title
                 content
@@ -202,14 +208,19 @@ class Feed extends Component {
                 createdAt
               }
             }
-          `
+          `,
+          variables: {
+            title,
+            content,
+            imageUrl: filePath
+          }
         };
 
         if (this.state.editPost) {
           graphqlQuery = {
             query: `
-              mutation {
-                updatePost(id: "${this.state.editPost._id}", postInput: { title: "${title}", content: "${content}", imageUrl: "${filePath}" }) {
+              mutation UpdatePost($id: ID!, $title: String!, $content: String!, $imageUrl: String!) {
+                updatePost(id: $id, postInput: { title: $title, content: $content, imageUrl: $imageUrl }) {
                   _id
                   title
                   content
@@ -220,7 +231,13 @@ class Feed extends Component {
                   createdAt
                 }
               }
-            `
+            `,
+            variables: {
+              id: this.state.editPost._id,
+              title,
+              content,
+              imageUrl: filePath || 'undefined'
+            }
           };
         }
 

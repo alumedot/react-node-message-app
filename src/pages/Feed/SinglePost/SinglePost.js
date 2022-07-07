@@ -13,17 +13,22 @@ const SinglePost = ({ token }) => {
     (async () => {
       try {
         const graphqlQuery = {
-          query: `{
-            post(id: "${params.postId}") {
-              title
-              content
-              imageUrl
-              creator {
-                name
+          query: `
+            query GetPost($id: ID!) {
+              post(id: $id) {
+                title
+                content
+                imageUrl
+                creator {
+                  name
+                }
+                createdAt
               }
-              createdAt
             }
-          }`
+          `,
+          variables: {
+            id: params.postId
+          }
         }
 
         const res = await fetch(`http://localhost:8080/graphql`, {
